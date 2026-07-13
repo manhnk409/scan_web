@@ -109,92 +109,145 @@ def _parse_args():
     return parser.parse_args()
 
 
-args = _parse_args()
-target = args.target
-if not target:
-    target = input("Nhap URL (vd: https://example.com): ")
-    if not args.insecure:
-        insecure_answer = input("Bo qua kiem tra SSL? (y/N): ").strip().lower()
-        args.insecure = insecure_answer in {"y", "yes"}
+def run_scan(target, insecure=False, log_callback=None):
+    verify_ssl = not insecure
 
-verify_ssl = not args.insecure
+    if insecure:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-if args.insecure:
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    def log(message, step=None, status=None):
+        if log_callback:
+            log_callback(message, step, status)
+        else:
+            print(message)
 
-report = {}
+    report = {}
 
-print("[+] Security Headers")
-report["headers"] = scan_headers(target, verify_ssl=verify_ssl)
+    log("[+] Security Headers", step="headers", status="running")
+    try:
+        report["headers"] = scan_headers(target, verify_ssl=verify_ssl)
+        log(f"Headers finished.", step="headers", status="success")
+    except Exception as e:
+        report["headers"] = {"error": str(e)}
+        log(f"Headers check failed: {str(e)}", step="headers", status="failed")
 
-print("[+] SSL/TLS")
-report["ssl"] = scan_ssl(target, verify_ssl=verify_ssl)
+    log("[+] SSL/TLS", step="ssl", status="running")
+    try:
+        report["ssl"] = scan_ssl(target, verify_ssl=verify_ssl)
+        log(f"SSL/TLS finished.", step="ssl", status="success")
+    except Exception as e:
+        report["ssl"] = {"error": str(e)}
+        log(f"SSL check failed: {str(e)}", step="ssl", status="failed")
 
-print("[+] Nmap")
-report["nmap"] = scan_nmap(target)
+    log("[+] Nmap", step="nmap", status="running")
+    try:
+        report["nmap"] = scan_nmap(target)
+        log(f"Nmap scan finished.", step="nmap", status="success")
+    except Exception as e:
+        report["nmap"] = {"error": str(e)}
+        log(f"Nmap scan failed: {str(e)}", step="nmap", status="failed")
 
-print("[+] Directory Brute Force")
-report["directory"] = scan_directory(target, verify_ssl=verify_ssl)
+    log("[+] Directory Brute Force", step="directory", status="running")
+    try:
+        report["directory"] = scan_directory(target, verify_ssl=verify_ssl)
+        log(f"Directory scan finished. Discovered {len(report['directory'].get('findings', []))} paths.", step="directory", status="success")
+    except Exception as e:
+        report["directory"] = {"error": str(e), "status": "failed"}
+        log(f"Directory scan failed: {str(e)}", step="directory", status="failed")
 
-print("[+] Discover Injection Targets")
-report["target_discovery"] = discover_injection_targets(
-    target,
-    report["directory"],
-    verify_ssl=verify_ssl,
-)
-get_targets = report["target_discovery"]["get_targets"]
-post_targets = report["target_discovery"]["post_targets"]
-injection_targets = [
-    {"method": "GET", **scan_target}
-    for scan_target in get_targets
-] + [
-    {"method": "POST", **scan_target}
-    for scan_target in post_targets
-]
+    log("[+] Discover Injection Targets", step="discovery", status="running")
+    try:
+        report["target_discovery"] = discover_injection_targets(
+            target,
+            report["directory"],
+            verify_ssl=verify_ssl,
+        )
+        get_targets = report["target_discovery"]["get_targets"]
+        post_targets = report["target_discovery"]["post_targets"]
+        log(f"Injection target discovery finished. Found {len(get_targets)} GET and {len(post_targets)} POST targets.", step="discovery", status="success")
+    except Exception as e:
+        report["target_discovery"] = {"error": str(e), "get_targets": [], "post_targets": [], "status": "failed"}
+        get_targets = []
+        post_targets = []
+        log(f"Target discovery failed: {str(e)}", step="discovery", status="failed")
 
-print("[+] SQL Injection Check")
-sqli_results = []
-for scan_target in injection_targets[:MAX_SQLI_TARGETS]:
-    print(f"    SQLi target: {scan_target['url']}")
-    if scan_target["method"] == "POST":
-        sqli_results.append(
-            scan_sqli(
+    injection_targets = [
+        {"method": "GET", **scan_target}
+        for scan_target in get_targets
+    ] + [
+        {"method": "POST", **scan_target}
+        for scan_target in post_targets
+    ]
+
+    log("[+] SQL Injection Check", step="sqli", status="running")
+    sqli_results = []
+    try:
+        for scan_target in injection_targets[:MAX_SQLI_TARGETS]:
+            log(f"    SQLi target: {scan_target['url']}")
+            if scan_target["method"] == "POST":
+                sqli_results.append(
+                    scan_sqli(
+                        scan_target["url"],
+                        method="POST",
+                        data=scan_target["data"],
+                        timeout=SQLI_TIMEOUT_SECONDS,
+                        insecure=insecure,
+                    )
+                )
+            else:
+                sqli_results.append(
+                    scan_sqli(
+                        scan_target["url"],
+                        timeout=SQLI_TIMEOUT_SECONDS,
+                        insecure=insecure,
+                    )
+                )
+        report["sqli"] = _merge_sqli_results(sqli_results)
+        report["sqli"]["skipped_targets"] = injection_targets[MAX_SQLI_TARGETS:]
+        log(f"SQL injection check finished. Vulnerability status: {report['sqli'].get('status')}.", step="sqli", status="success")
+    except Exception as e:
+        report["sqli"] = {"error": str(e), "status": "failed"}
+        log(f"SQL injection check failed: {str(e)}", step="sqli", status="failed")
+
+    log("[+] XSS Check", step="xss", status="running")
+    xss_results = []
+    try:
+        for scan_target in get_targets:
+            result = scan_xss(scan_target["url"], verify_ssl=verify_ssl)
+            result["target_url"] = scan_target["url"]
+            xss_results.append(result)
+        for scan_target in post_targets:
+            result = scan_xss(
                 scan_target["url"],
                 method="POST",
                 data=scan_target["data"],
-                timeout=SQLI_TIMEOUT_SECONDS,
-                insecure=args.insecure,
+                verify_ssl=verify_ssl,
             )
-        )
-    else:
-        sqli_results.append(
-            scan_sqli(
-                scan_target["url"],
-                timeout=SQLI_TIMEOUT_SECONDS,
-                insecure=args.insecure,
-            )
-        )
-report["sqli"] = _merge_sqli_results(sqli_results)
-report["sqli"]["skipped_targets"] = injection_targets[MAX_SQLI_TARGETS:]
+            result["target_url"] = scan_target["url"]
+            xss_results.append(result)
+        report["xss"] = _merge_xss_results(xss_results)
+        log(f"XSS check finished. Reflection status: {report['xss'].get('status')}.", step="xss", status="success")
+    except Exception as e:
+        report["xss"] = {"error": str(e), "status": "failed"}
+        log(f"XSS check failed: {str(e)}", step="xss", status="failed")
 
-print("[+] XSS Check")
-xss_results = []
-for scan_target in get_targets:
-    result = scan_xss(scan_target["url"], verify_ssl=verify_ssl)
-    result["target_url"] = scan_target["url"]
-    xss_results.append(result)
-for scan_target in post_targets:
-    result = scan_xss(
-        scan_target["url"],
-        method="POST",
-        data=scan_target["data"],
-        verify_ssl=verify_ssl,
-    )
-    result["target_url"] = scan_target["url"]
-    xss_results.append(result)
-report["xss"] = _merge_xss_results(xss_results)
+    log("[+] Generating Report", step="report", status="running")
+    try:
+        html_path, json_path = generate_report(target, report)
+        log(f"Report saved: {html_path}", step="report", status="success")
+        return report, html_path, json_path
+    except Exception as e:
+        log(f"Failed to generate report: {str(e)}", step="report", status="failed")
+        raise e
 
 
-generate_report(target, report)
+if __name__ == "__main__":
+    args = _parse_args()
+    target = args.target
+    if not target:
+        target = input("Nhap URL (vd: https://example.com): ")
+        if not args.insecure:
+            insecure_answer = input("Bo qua kiem tra SSL? (y/N): ").strip().lower()
+            args.insecure = insecure_answer in {"y", "yes"}
 
-print("Report saved.")
+    run_scan(target, insecure=args.insecure)

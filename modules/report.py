@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from html import escape
 import os
 
@@ -591,4 +591,10 @@ def generate_report(target, report):
 
         report_file.write(html)
 
+    import json
+    json_filename = filename.replace(".html", ".json")
+    with open(json_filename, "w", encoding="utf-8") as json_file:
+        json.dump(report, json_file, indent=4, ensure_ascii=False)
+
     print("Saved:", filename)
+    return filename, json_filename

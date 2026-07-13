@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinX - Web Security Scanner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-shield-halved logo-icon"></i>
+                <span class="logo-text">Sentin<span>X</span></span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" id="nav-btn-scan">
+                    <i class="fa-solid fa-radar"></i>
+                    <span>Scanner Console</span>
+                </button>
+                <button class="nav-btn" id="nav-btn-history">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Scan History</span>
+                </button>
+                <button class="nav-btn" id="nav-btn-about">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>About Scanner</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="version">v1.2.0-beta</div>
+                <div class="status-indicator">
+                    <span class="pulse-dot green"></span>
+                    <span>System Ready</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- VIEW: SCANNER CONSOLE -->
+            <section class="content-view active" id="view-scan">
+                <div class="view-header">
+                    <h1>Security Scanner Console</h1>
+                    <p class="subtitle">Execute vulnerability assessments on web targets and examine results instantly.</p>
+                </div>
+
+                <!-- Scan Input Card -->
+                <div class="cyber-card glass-panel" id="scan-launcher-card">
+                    <div class="card-glow"></div>
+                    <form id="scan-form">
+                        <div class="form-group url-input-group">
+                            <label for="target-url">Target URL</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-globe input-icon"></i>
+                                <input type="text" id="target-url" placeholder="https://example.com" required autocomplete="off">
+                                <button type="submit" class="cyber-btn primary" id="start-scan-btn">
+                                    <span>ENGAGE SCAN</span>
+                                    <i class="fa-solid fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-options">
+                            <div class="option-toggle">
+                                <label class="switch">
+                                    <input type="checkbox" id="ssl-insecure">
+                                    <span class="slider round"></span>
+                                </label>
+                                <div class="option-text">
+                                    <span class="option-title">Bypass SSL Verification</span>
+                                    <span class="option-desc">Skip SSL checks for lab targets with self-signed certificates.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Live Progress Card -->
+                <div class="cyber-card glass-panel hidden" id="scan-progress-card">
+                    <div class="card-glow"></div>
+                    <div class="progress-header">
+                        <div class="status-summary">
+                            <span class="scanner-pulse active"></span>
+                            <div>
+                                <h3 id="current-scan-target">Scanning: example.com</h3>
+                                <p class="loader-message" id="live-status-text">Initializing scanning modules...</p>
+                            </div>
+                        </div>
+                        <div class="abort-control">
+                            <span class="badge pulse-border text-cyan" id="progress-percentage">SCAN IN PROGRESS</span>
+                        </div>
+                    </div>
+
+                    <div class="scan-grid">
+                        <!-- Stepper -->
+                        <div class="stepper-container">
+                            <h4 class="section-title">Analysis Phase Stepper</h4>
+                            <div class="stepper">
+                                <div class="step" id="step-init" data-step="init">
+                                    <div class="step-icon"><i class="fa-solid fa-circle-nodes"></i></div>
+                                    <span class="step-label">Initialization</span>
+                                </div>
+                                <div class="step" id="step-headers" data-step="headers">
+                                    <div class="step-icon"><i class="fa-solid fa-file-shield"></i></div>
+                                    <span class="step-label">Security Headers Scan</span>
+                                </div>
+                                <div class="step" id="step-ssl" data-step="ssl">
+                                    <div class="step-icon"><i class="fa-solid fa-lock"></i></div>
+                                    <span class="step-label">SSL/TLS Configuration</span>
+                                </div>
+                                <div class="step" id="step-nmap" data-step="nmap">
+                                    <div class="step-icon"><i class="fa-solid fa-network-wired"></i></div>
+                                    <span class="step-label">Port Analysis (Nmap)</span>
+                                </div>
+                                <div class="step" id="step-directory" data-step="directory">
+                                    <div class="step-icon"><i class="fa-solid fa-folder-tree"></i></div>
+                                    <span class="step-label">Directory Brute Force</span>
+                                </div>
+                                <div class="step" id="step-discovery" data-step="discovery">
+                                    <div class="step-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                    <span class="step-label">Form Discovery</span>
+                                </div>
+                                <div class="step" id="step-sqli" data-step="sqli">
+                                    <div class="step-icon"><i class="fa-solid fa-database"></i></div>
+                                    <span class="step-label">SQL Injection Check</span>
+                                </div>
+                                <div class="step" id="step-xss" data-step="xss">
+                                    <div class="step-icon"><i class="fa-solid fa-code"></i></div>
+                                    <span class="step-label">XSS Reflection Analysis</span>
+                                </div>
+                                <div class="step" id="step-report" data-step="report">
+                                    <div class="step-icon"><i class="fa-solid fa-file-export"></i></div>
+                                    <span class="step-label">Generating Reports</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Console Logs -->
+                        <div class="console-container">
+                            <div class="console-header">
+                                <span><i class="fa-solid fa-terminal text-cyan"></i> live_output_console.log</span>
+                                <button class="console-clear-btn" id="clear-console-btn">Clear Log</button>
+                            </div>
+                            <div class="console-output" id="console-output">
+                                <div class="console-line text-dim">Console initialized. Awaiting pipeline start...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Details Container -->
+                <div class="hidden" id="active-report-container">
+                    <div class="report-header-toolbar">
+                        <button class="cyber-btn secondary" id="close-report-btn">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Close Report</span>
+                        </button>
+                        <div class="toolbar-actions">
+                            <a href="" target="_blank" class="cyber-btn primary" id="download-report-btn">
+                                <span>Open Raw HTML</span>
+                                <i class="fa-solid fa-up-right-from-square"></i>
+                            </a>
+                            <button class="cyber-btn danger" id="delete-current-report-btn">
+                                <span>Delete Scan</span>
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="report-viewer-content"></div>
+                </div>
+            </section>
+
+
+            <!-- VIEW: SCAN HISTORY -->
+            <section class="content-view" id="view-history">
+                <div class="view-header">
+                    <h1>Scan Reports Ledger</h1>
+                    <p class="subtitle">Access and manage completed security assessment records stored locally.</p>
+                </div>
+
+                <div class="history-controls glass-panel">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="history-search" placeholder="Filter by domain or path...">
+                    </div>
+                    <button class="cyber-btn secondary" id="refresh-history-btn">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Refresh List</span>
+                    </button>
+                </div>
+
+                <div class="history-list" id="history-list-container">
+                    <!-- Dynamic history card entries here -->
+                    <div class="no-reports glass-panel">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <p>No scans performed yet, or scanner reports list is empty.</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- VIEW: ABOUT SCANNER -->
+            <section class="content-view" id="view-about">
+                <div class="view-header">
+                    <h1>SentinX Scan Suite</h1>
+                    <p class="subtitle">An automated web vulnerability scanning application designed for penetration testers.</p>
+                </div>
+
+                <div class="about-grid">
+                    <div class="glass-panel text-panel">
+                        <h3>Vulnerability Matrix Explanations</h3>
+                        <p>SentinX crawls web targets, maps request routes, and performs structured vulnerability audits on the following security layers:</p>
+                        
+                        <div class="tech-item-list">
+                            <div class="tech-item">
+                                <div class="tech-icon"><i class="fa-solid fa-shield"></i></div>
+                                <div>
+                                    <h5>Security Headers Audit</h5>
+                                    <p>Verifies deployment of Content Security Policy (CSP), Strict-Transport-Security (HSTS), X-Frame-Options, X-Content-Type-Options, and Referrer-Policy to prevent framing, MIME-sniffing, and data leaks.</p>
+                                </div>
+                            </div>
+                            <div class="tech-item">
+                                <div class="tech-icon"><i class="fa-solid fa-lock"></i></div>
+                                <div>
+                                    <h5>SSL/TLS Protocol Testing</h5>
+                                    <p>Examines certificate validity, dates, CA issuer metadata, and tests compliance with standard encryption configurations.</p>
+                                </div>
+                            </div>
+                            <div class="tech-item">
+                                <div class="tech-icon"><i class="fa-solid fa-network-wired"></i></div>
+                                <div>
+                                    <h5>Nmap Port Mapping</h5>
+                                    <p>Identifies active server ports and queries network services for version signatures to reveal misconfigured or vulnerable endpoints.</p>
+                                </div>
+                            </div>
+                            <div class="tech-item">
+                                <div class="tech-icon"><i class="fa-solid fa-folder-tree"></i></div>
+                                <div>
+                                    <h5>Directory Brute Force</h5>
+                                    <p>Enumerates accessible subdirectories and source files using target lists to locate hidden portals, configuration backups, or logs.</p>
+                                </div>
+                            </div>
+                            <div class="tech-item">
+                                <div class="tech-icon"><i class="fa-solid fa-database"></i></div>
+                                <div>
+                                    <h5>SQL Injection Discovery</h5>
+                                    <p>Analyzes GET and POST endpoints, testing query parameters with active payloads to map vulnerable database connectors.</p>
+                                </div>
+                            </div>
+                            <div class="tech-item">
+                                <div class="tech-icon"><i class="fa-solid fa-code"></i></div>
+                                <div>
+                                    <h5>Cross-Site Scripting (XSS)</h5>
+                                    <p>Injects standard HTML/JS vectors into discovered inputs, verifying reflection context in responses to determine execution risks.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel specs-panel">
+                        <h3>Environment Information</h3>
+                        <div class="specs-list">
+                            <div class="spec-row">
+                                <span class="spec-label">Backend Framework:</span>
+                                <span class="spec-val">FastAPI v0.139+</span>
+                            </div>
+                            <div class="spec-row">
+                                <span class="spec-label">Server Engine:</span>
+                                <span class="spec-val">Uvicorn on Python 3.13</span>
+                            </div>
+                            <div class="spec-row">
+                                <span class="spec-label">Web Client:</span>
+                                <span class="spec-val">Vanilla ECMAScript & CSS Grid</span>
+                            </div>
+                            <div class="spec-row">
+                                <span class="spec-label">Port Scan Driver:</span>
+                                <span class="spec-val">Python-nmap binding wrapper</span>
+                            </div>
+                            <div class="spec-row">
+                                <span class="spec-label">SQL Injection Agent:</span>
+                                <span class="spec-val">Dynamic injection modules</span>
+                            </div>
+                        </div>
+                        <div class="about-hero-graphic">
+                            <i class="fa-solid fa-shield-halved glow-icon"></i>
+                            <div class="glow-ring"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="notification-toast hidden" id="toast">
+        <i class="fa-solid fa-triangle-exclamation toast-icon" id="toast-icon"></i>
+        <div class="toast-body">
+            <h4 id="toast-title">Message Title</h4>
+            <p id="toast-message">Detailed toast message context.</p>
+        </div>
+    </div>
+
+    <!-- Frontend logic -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

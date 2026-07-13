@@ -6,7 +6,6 @@ from urllib.parse import urljoin
 
 import requests
 
-# Download the default wordlist if it doesn't exist
 
 DEFAULT_WORDLIST = "common.txt"
 DEFAULT_THREADS = 50
@@ -63,6 +62,7 @@ def scan_directory(
         "findings": found,
         "errors": errors,
         "duration_seconds": 0,
+        "verify_ssl": verify_ssl,
     }
 
     if not os.path.exists(wordlist):

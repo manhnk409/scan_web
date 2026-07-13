@@ -4,9 +4,7 @@ from urllib.parse import urlparse
 
 
 def scan_ssl(url, verify_ssl=True):
-
     try:
-
         host = urlparse(url).hostname
 
         if verify_ssl:
@@ -18,11 +16,10 @@ def scan_ssl(url, verify_ssl=True):
             socket.socket(),
             server_hostname=host
         ) as socket_connection:
-
             socket_connection.settimeout(5)
             socket_connection.connect((host, 443))
 
-            cert = socket_connection.getpeercert()
+            cert = socket_connection.getpeercert() or {}
 
             return {
                 "issuer": cert.get("issuer"),

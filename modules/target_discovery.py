@@ -1,53 +1,43 @@
-from html.parser import HTMLParser
 from urllib.parse import parse_qs, urlencode, urljoin, urlparse, urlunparse
-
 import requests
-
+from bs4 import BeautifulSoup
 
 DEFAULT_FIELD_VALUE = "test"
 
 
-class _TargetParser(HTMLParser):
-    def __init__(self, page_url):
-        super().__init__()
-        self.page_url = page_url
-        self.links = []
-        self.forms = []
-        self._current_form = None
+def _parse_page(html_content, page_url):
+    soup = BeautifulSoup(html_content, "html.parser")
+    links = []
+    forms = []
 
-    def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
+    # 1. Parse all links
+    for a in soup.find_all("a", href=True):
+        links.append(urljoin(page_url, a["href"]))
 
-        if tag == "a" and attrs.get("href"):
-            self.links.append(urljoin(self.page_url, attrs["href"]))
-            return
-
-        if tag == "form":
-            self._current_form = {
-                "action": attrs.get("action") or self.page_url,
-                "method": attrs.get("method", "GET").upper(),
-                "fields": {},
-            }
-            return
-
-        if self._current_form is None:
-            return
-
-        if tag in {"input", "textarea", "select"}:
-            name = attrs.get("name")
+    # 2. Parse all forms
+    for form in soup.find_all("form"):
+        action = form.get("action") or page_url
+        method = (form.get("method") or "GET").upper()
+        
+        fields = {}
+        for tag in form.find_all(["input", "textarea", "select"]):
+            name = tag.get("name")
             if not name:
-                return
-
-            field_type = attrs.get("type", "text").lower()
+                continue
+                
+            field_type = (tag.get("type") or "text").lower()
             if field_type in {"button", "submit", "reset", "image", "file"}:
-                return
-
-            self._current_form["fields"][name] = attrs.get("value") or DEFAULT_FIELD_VALUE
-
-    def handle_endtag(self, tag):
-        if tag == "form" and self._current_form is not None:
-            self.forms.append(self._current_form)
-            self._current_form = None
+                continue
+                
+            fields[name] = tag.get("value") or DEFAULT_FIELD_VALUE
+            
+        forms.append({
+            "action": action,
+            "method": method,
+            "fields": fields
+        })
+        
+    return links, forms
 
 
 def _same_origin(url, base):
@@ -160,10 +150,9 @@ def discover_injection_targets(
         if "html" not in content_type.lower():
             continue
 
-        parser = _TargetParser(response.url)
-        parser.feed(response.text)
+        links, forms = _parse_page(response.text, response.url)
 
-        for link in parser.links:
+        for link in links:
             if not _same_origin(link, target):
                 continue
 
@@ -178,7 +167,7 @@ def discover_injection_targets(
             elif normalized_link not in visited and len(pages_to_visit) < max_pages:
                 pages_to_visit.append(normalized_link)
 
-        for form in parser.forms:
+        for form in forms:
             if not form["fields"]:
                 continue
 

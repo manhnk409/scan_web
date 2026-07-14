@@ -9,21 +9,21 @@ def _render_pretty_block(value):
 
 def _render_status(status):
     labels = {
-        "potential_vulnerability_detected": "Potential vulnerability detected",
-        "input_reflection_observed": "Input reflection observed",
-        "no_parameters_found": "No parameters found",
-        "no_vulnerability_detected": "No obvious vulnerability detected",
-        "baseline_request_failed": "Baseline request failed",
-        "sqlmap_run": "SQLMap scan completed",
-        "potential_paths_found": "Potential paths found",
-        "no_interesting_paths_found": "No interesting paths found",
-        "wordlist_not_found": "Wordlist not found",
-        "wordlist_read_failed": "Wordlist read failed",
-        "empty_wordlist": "Empty wordlist",
-        "injection_targets_found": "Injection targets found",
-        "no_injection_targets_found": "No injection targets found",
-        "sqlmap_not_found": "SQLMap not found",
-        "scan_timeout": "Scan timed out",
+        "potential_vulnerability_detected": "Phát hiện nguy cơ lỗ hổng",
+        "input_reflection_observed": "Phát hiện phản chiếu đầu vào",
+        "no_parameters_found": "Không tìm thấy tham số",
+        "no_vulnerability_detected": "Không phát hiện lỗ hổng rõ ràng",
+        "baseline_request_failed": "Yêu cầu cơ bản thất bại",
+        "sqlmap_run": "Đã chạy sqlmap",
+        "potential_paths_found": "Tìm thấy đường dẫn tiềm năng",
+        "no_interesting_paths_found": "Không tìm thấy đường dẫn quan trọng",
+        "wordlist_not_found": "Không tìm thấy danh sách từ khóa",
+        "wordlist_read_failed": "Đọc danh sách từ khóa thất bại",
+        "empty_wordlist": "Danh sách từ khóa rỗng",
+        "injection_targets_found": "Tìm thấy mục tiêu tiêm",
+        "no_injection_targets_found": "Không tìm thấy mục tiêu tiêm",
+        "sqlmap_not_found": "Không tìm thấy sqlmap",
+        "scan_timeout": "Quét vượt thời gian",
     }
 
     return labels.get(status, status or "unknown")
@@ -58,34 +58,34 @@ def _render_directory_section(directory):
 
     html_parts = [
         "<section>",
-        "<h2>Directory Brute Force</h2>",
-        f"<p><strong>Status:</strong> {escape(_render_status(status))}</p>",
-        f"<p><strong>Wordlist:</strong> {escape(str(directory.get('wordlist', '')))}</p>",
-        f"<p><strong>Threads:</strong> {escape(str(directory.get('threads', '')))}</p>",
-        f"<p><strong>Tested paths:</strong> {escape(str(directory.get('tested_paths', 0)))}</p>",
-        f"<p><strong>Findings:</strong> {len(findings)}</p>",
-        f"<p><strong>Duration:</strong> {escape(str(directory.get('duration_seconds', 0)))} seconds</p>",
+        "<h2>Danh Mục Brute Force</h2>",
+        f"<p><strong>Trạng thái:</strong> {escape(_render_status(status))}</p>",
+        f"<p><strong>Danh sách từ khóa:</strong> {escape(str(directory.get('wordlist', '')))}</p>",
+        f"<p><strong>Số luồng:</strong> {escape(str(directory.get('threads', '')))}</p>",
+        f"<p><strong>Đường dẫn đã thử:</strong> {escape(str(directory.get('tested_paths', 0)))}</p>",
+        f"<p><strong>Số phát hiện:</strong> {len(findings)}</p>",
+        f"<p><strong>Thời gian:</strong> {escape(str(directory.get('duration_seconds', 0)))} giây</p>",
     ]
 
     if directory.get("error"):
         html_parts.append(
-            f"<p><strong>Error:</strong> {escape(str(directory.get('error')))}</p>"
+            f"<p><strong>Lỗi:</strong> {escape(str(directory.get('error')))}</p>"
         )
 
     if extensions:
         html_parts.append(
-            f"<p><strong>Extensions:</strong> {escape(', '.join(map(str, extensions)))}</p>"
+            f"<p><strong>Đuôi tệp:</strong> {escape(', '.join(map(str, extensions)))}</p>"
         )
 
     if findings:
-        html_parts.append("<h3>Potential Paths</h3>")
+        html_parts.append("<h3>Đường dẫn tiềm năng</h3>")
         html_parts.append("<table border='1' cellspacing='0' cellpadding='6'>")
         html_parts.append(
             "<tr>"
-            "<th>Status</th>"
+            "<th>Mã trạng thái</th>"
             "<th>URL</th>"
-            "<th>Final URL</th>"
-            "<th>Content length</th>"
+            "<th>URL cuối</th>"
+            "<th>Kích thước nội dung</th>"
             "</tr>"
         )
 
@@ -121,17 +121,17 @@ def _render_target_discovery_section(discovery):
 
     html_parts = [
         "<section>",
-        "<h2>Injection Target Discovery</h2>",
-        f"<p><strong>Status:</strong> {escape(_render_status(discovery.get('status', 'unknown')))}</p>",
-        f"<p><strong>Pages visited:</strong> {escape(str(discovery.get('pages_visited', 0)))}</p>",
-        f"<p><strong>GET targets:</strong> {len(get_targets)}</p>",
-        f"<p><strong>POST targets:</strong> {len(post_targets)}</p>",
+        "<h2>Khám phá mục tiêu tiêm</h2>",
+        f"<p><strong>Trạng thái:</strong> {escape(_render_status(discovery.get('status', 'unknown')))}</p>",
+        f"<p><strong>Số trang đã duyệt:</strong> {escape(str(discovery.get('pages_visited', 0)))}</p>",
+        f"<p><strong>Mục tiêu GET:</strong> {len(get_targets)}</p>",
+        f"<p><strong>Mục tiêu POST:</strong> {len(post_targets)}</p>",
     ]
 
     if get_targets:
-        html_parts.append("<h3>GET Targets</h3>")
+        html_parts.append("<h3>Mục tiêu GET</h3>")
         html_parts.append("<table border='1' cellspacing='0' cellpadding='6'>")
-        html_parts.append("<tr><th>URL</th><th>Source</th></tr>")
+        html_parts.append("<tr><th>URL</th><th>Nguồn</th></tr>")
 
         for item in get_targets:
             html_parts.append(
@@ -144,9 +144,9 @@ def _render_target_discovery_section(discovery):
         html_parts.append("</table>")
 
     if post_targets:
-        html_parts.append("<h3>POST Targets</h3>")
+        html_parts.append("<h3>Mục tiêu POST</h3>")
         html_parts.append("<table border='1' cellspacing='0' cellpadding='6'>")
-        html_parts.append("<tr><th>URL</th><th>Fields</th><th>Source</th></tr>")
+        html_parts.append("<tr><th>URL</th><th>Trường</th><th>Nguồn</th></tr>")
 
         for item in post_targets:
             html_parts.append(
@@ -161,7 +161,7 @@ def _render_target_discovery_section(discovery):
 
     if errors:
         html_parts.append("<details>")
-        html_parts.append(f"<summary>Discovery errors ({len(errors)})</summary>")
+        html_parts.append(f"<summary>Lỗi khám phá ({len(errors)})</summary>")
         html_parts.append(f"<pre>{escape(repr(errors[:50]))}</pre>")
         html_parts.append("</details>")
 
@@ -181,29 +181,29 @@ def _render_sqlmap_section(sqli):
 
     html_parts = [
         "<section>",
-        "<h2>SQL Injection Check</h2>",
-        f"<p><strong>Status:</strong> {escape(_render_status(status))}</p>",
+        "<h2>Kiểm tra SQL Injection</h2>",
+        f"<p><strong>Trạng thái:</strong> {escape(_render_status(status))}</p>",
     ]
 
     if target_url:
         html_parts.append(
-            f"<p><strong>Target URL:</strong> "
+            f"<p><strong>URL Mục tiêu:</strong> "
             f"{escape(str(target_url))}</p>"
         )
 
     if target_parameters:
         html_parts.append(
-            f"<p><strong>Target parameters:</strong> "
+            f"<p><strong>Tham số mục tiêu:</strong> "
             f"{escape(', '.join(map(str, target_parameters)))}</p>"
         )
 
     if skipped_targets:
         html_parts.append(
-            f"<p><strong>Skipped SQLi targets:</strong> "
-            f"{len(skipped_targets)} due to scan limit</p>"
+            f"<p><strong>Đã bỏ qua mục tiêu SQLi:</strong> "
+            f"{len(skipped_targets)} do giới hạn quét</p>"
         )
         html_parts.append("<details>")
-        html_parts.append("<summary>Skipped SQLi target list</summary>")
+        html_parts.append("<summary>Danh sách mục tiêu bị bỏ qua</summary>")
         html_parts.append("<ul>")
         for item in skipped_targets:
             html_parts.append(
@@ -215,11 +215,11 @@ def _render_sqlmap_section(sqli):
 
     if tested_parameters:
         html_parts.append(
-            f"<p><strong>Parameters tested:</strong> "
+            f"<p><strong>Tham số đã thử:</strong> "
             f"{len(tested_parameters)}</p>"
         )
 
-        html_parts.append("<h3>Parameters tested</h3>")
+        html_parts.append("<h3>Tham số đã thử</h3>")
         html_parts.append(
             "<table border='1' cellspacing='0' cellpadding='6'>"
         )
@@ -227,11 +227,11 @@ def _render_sqlmap_section(sqli):
 
         html_parts.append("<tr>")
         if show_target_url:
-            html_parts.append("<th>Target URL</th>")
+            html_parts.append("<th>URL mục tiêu</th>")
         html_parts.append(
-            "<th>Parameter</th>"
-            "<th>Payloads tested</th>"
-            "<th>Evidence entries</th>"
+            "<th>Tham số</th>"
+            "<th>Số payload đã thử</th>"
+            "<th>Số bằng chứng</th>"
             "</tr>"
         )
 
@@ -256,22 +256,22 @@ def _render_sqlmap_section(sqli):
 
     if confirmed_findings:
         html_parts.append(
-            f"<p><strong>Confirmed SQLi cases:</strong> "
+            f"<p><strong>SQLi đã xác nhận:</strong> "
             f"{len(confirmed_findings)}</p>"
         )
 
-        html_parts.append("<h3>Confirmed SQLi</h3>")
+        html_parts.append("<h3>SQLi đã xác nhận</h3>")
         html_parts.append(
             "<table border='1' cellspacing='0' cellpadding='6'>"
         )
 
         html_parts.append(
             "<tr>"
-            "<th>Target URL</th>"
-            "<th>Parameter</th>"
-            "<th>Location</th>"
-            "<th>Technique</th>"
-            "<th>Title</th>"
+            "<th>URL mục tiêu</th>"
+            "<th>Tham số</th>"
+            "<th>Vị trí</th>"
+            "<th>Kỹ thuật</th>"
+            "<th>Tiêu đề</th>"
             "<th>Payload</th>"
             "</tr>"
         )
@@ -329,11 +329,11 @@ def _render_sqlmap_section(sqli):
 
     elif findings:
         html_parts.append(
-            f"<p><strong>Findings:</strong> "
+            f"<p><strong>Kết quả:</strong> "
             f"{len(findings)}</p>"
         )
 
-        html_parts.append("<h3>Findings</h3>")
+        html_parts.append("<h3>Kết quả</h3>")
         html_parts.append("<ul>")
 
         for finding in findings:
@@ -349,11 +349,11 @@ def _render_sqlmap_section(sqli):
             target_url = finding.get("target_url")
 
             if target_url:
-                line += f" on {escape(str(target_url))}"
+                line += f" trên {escape(str(target_url))}"
 
             if payload not in (None, ""):
                 line += (
-                    f" with payload "
+                    f" với payload "
                     f"<code>{escape(str(payload))}</code>"
                 )
 
@@ -371,13 +371,13 @@ def _render_sqlmap_section(sqli):
 
     else:
         html_parts.append(
-            "<p>No findings were reported by sqlmap.</p>"
+            "<p>Không có kết quả nào được báo bởi sqlmap.</p>"
         )
 
     if raw_output:
         html_parts.append("<details>")
         html_parts.append(
-            "<summary>sqlmap raw output</summary>"
+            "<summary>Xuất kết quả thô của sqlmap</summary>"
         )
         html_parts.append(
             f"<pre>{escape(raw_output)}</pre>"
@@ -402,30 +402,30 @@ def _render_sqli_section(sqli):
 
     html_parts = [
         "<section>",
-        "<h2>SQL Injection Check</h2>",
-        f"<p><strong>Status:</strong> {escape(_render_status(status))}</p>",
-        f"<p><strong>Findings:</strong> {len(findings)}</p>",
-        f"<p><strong>Parameters tested:</strong> {len(tested_parameters)}</p>",
+        "<h2>Kiểm tra SQL Injection</h2>",
+        f"<p><strong>Trạng thái:</strong> {escape(_render_status(status))}</p>",
+        f"<p><strong>Số kết quả:</strong> {len(findings)}</p>",
+        f"<p><strong>Tham số đã thử:</strong> {len(tested_parameters)}</p>",
     ]
 
     if status == "baseline_request_failed":
         html_parts.append(
-            f"<p><strong>Error:</strong> {escape(str(sqli.get('error', 'unknown')))}</p>"
+            f"<p><strong>Lỗi:</strong> {escape(str(sqli.get('error', 'unknown')))}</p>"
         )
 
     if status == "no_parameters_found":
         html_parts.append(
-            "<p>The target URL does not contain query parameters, so no SQLi payloads were injected.</p>"
+            "<p>URL mục tiêu không chứa tham số truy vấn, do đó không có payload SQLi nào được gửi.</p>"
         )
 
     if tested_parameters:
-        html_parts.append("<h3>Parameters tested</h3>")
+        html_parts.append("<h3>Tham số đã thử</h3>")
         html_parts.append("<table border='1' cellspacing='0' cellpadding='6'>")
         show_target_url = any(item.get("target_url") for item in tested_parameters)
         html_parts.append("<tr>")
         if show_target_url:
-            html_parts.append("<th>Target URL</th>")
-        html_parts.append("<th>Parameter</th><th>Payloads tested</th><th>Evidence entries</th></tr>")
+            html_parts.append("<th>URL mục tiêu</th>")
+        html_parts.append("<th>Tham số</th><th>Số payload đã thử</th><th>Số bằng chứng</th></tr>")
         for item in tested_parameters:
             evidence_count = len(item.get("evidence", []))
             html_parts.append("<tr>")
@@ -440,7 +440,7 @@ def _render_sqli_section(sqli):
         html_parts.append("</table>")
 
     if findings:
-        html_parts.append("<h3>Findings</h3>")
+        html_parts.append("<h3>Kết quả</h3>")
         html_parts.append("<ul>")
         for finding in findings:
             parameter = escape(str(finding.get("parameter", "")))
@@ -448,9 +448,9 @@ def _render_sqli_section(sqli):
             details = finding.get("details", [])
             detail_text = _render_detail_list(details)
             target_url = finding.get("target_url")
-            target_text = f" on {escape(str(target_url))}" if target_url else ""
+            target_text = f" trên {escape(str(target_url))}" if target_url else ""
             html_parts.append(
-                f"<li><strong>{parameter}</strong>{target_text} with payload <code>{payload}</code>"
+                f"<li><strong>{parameter}</strong>{target_text} với payload <code>{payload}</code>"
                 + (f": {detail_text}" if detail_text else "")
                 + "</li>"
             )
@@ -470,30 +470,30 @@ def _render_xss_section(xss):
 
     html_parts = [
         "<section>",
-        "<h2>XSS Check</h2>",
-        f"<p><strong>Status:</strong> {escape(_render_status(status))}</p>",
-        f"<p><strong>Findings:</strong> {len(findings)}</p>",
-        f"<p><strong>Parameters tested:</strong> {len(tested_parameters)}</p>",
+        "<h2>Kiểm tra XSS</h2>",
+        f"<p><strong>Trạng thái:</strong> {escape(_render_status(status))}</p>",
+        f"<p><strong>Số kết quả:</strong> {len(findings)}</p>",
+        f"<p><strong>Tham số đã thử:</strong> {len(tested_parameters)}</p>",
     ]
 
     if status == "baseline_request_failed":
         html_parts.append(
-            f"<p><strong>Error:</strong> {escape(str(xss.get('error', 'unknown')))}</p>"
+            f"<p><strong>Lỗi:</strong> {escape(str(xss.get('error', 'unknown')))}</p>"
         )
 
     if status == "no_parameters_found":
         html_parts.append(
-            "<p>The target URL does not contain query parameters, so no XSS payloads were injected.</p>"
+            "<p>URL mục tiêu không chứa tham số truy vấn, do đó không có payload XSS nào được gửi.</p>"
         )
 
     if tested_parameters:
-        html_parts.append("<h3>Parameters tested</h3>")
+        html_parts.append("<h3>Tham số đã thử</h3>")
         html_parts.append("<table border='1' cellspacing='0' cellpadding='6'>")
         show_target_url = any(item.get("target_url") for item in tested_parameters)
         html_parts.append("<tr>")
         if show_target_url:
-            html_parts.append("<th>Target URL</th>")
-        html_parts.append("<th>Parameter</th><th>Payloads tested</th><th>Evidence entries</th></tr>")
+            html_parts.append("<th>URL mục tiêu</th>")
+        html_parts.append("<th>Tham số</th><th>Số payload đã thử</th><th>Số bằng chứng</th></tr>")
         for item in tested_parameters:
             evidence_count = len(item.get("evidence", []))
             html_parts.append("<tr>")
@@ -508,7 +508,7 @@ def _render_xss_section(xss):
         html_parts.append("</table>")
 
     if findings:
-        html_parts.append("<h3>Findings</h3>")
+        html_parts.append("<h3>Kết quả</h3>")
         html_parts.append("<ul>")
         for finding in findings:
             parameter = escape(str(finding.get("parameter", "")))
@@ -516,9 +516,9 @@ def _render_xss_section(xss):
             details = finding.get("details", [])
             detail_text = _render_detail_list(details)
             target_url = finding.get("target_url")
-            target_text = f" on {escape(str(target_url))}" if target_url else ""
+            target_text = f" trên {escape(str(target_url))}" if target_url else ""
             html_parts.append(
-                f"<li><strong>{parameter}</strong>{target_text} with payload <code>{payload}</code>"
+                f"<li><strong>{parameter}</strong>{target_text} với payload <code>{payload}</code>"
                 + (f": {detail_text}" if detail_text else "")
                 + "</li>"
             )
@@ -543,7 +543,7 @@ def generate_report(target, report):
     html = f"""
     <html>
     <head>
-        <title>Security Report</title>
+        <title>Báo Cáo Quét Bảo Mật</title>
         <style>
             body {{ font-family: Arial, sans-serif; line-height: 1.5; max-width: 1100px; margin: 32px auto; padding: 0 16px; }}
             h1, h2, h3 {{ color: #1f2937; }}
@@ -557,9 +557,9 @@ def generate_report(target, report):
     </head>
     <body>
 
-    <h1>Security Scan Report</h1>
+    <h1>Báo Cáo Quét Bảo Mật</h1>
 
-    <h2>Target</h2>
+    <h2>Mục Tiêu</h2>
     <pre>{escape(target)}</pre>
 
     <h2>Headers</h2>

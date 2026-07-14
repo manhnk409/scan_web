@@ -118,9 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
         activeReportContainer.classList.add('hidden');
         scanProgressCard.classList.remove('hidden');
 
-        currentScanTarget.innerText = `Scanning Target: ${url}`;
-        liveStatusText.innerText = 'Transmitting execution payload...';
-        progressPercentage.innerText = 'INITIALIZING';
+        currentScanTarget.innerText = `Đang quét: ${url}`;
+        liveStatusText.innerText = 'Đang gửi yêu cầu thực thi...';
+        progressPercentage.innerText = 'KHỞI TẠO';
         consoleOutput.innerHTML = '';
         
         // Reset all stepper steps to pending
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const errData = await response.json();
-                throw new Error(errData.detail || 'Scan launch failed');
+                throw new Error(errData.detail || 'Khởi chạy quét thất bại');
             }
 
             const data = await response.json();
@@ -150,10 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Connect SSE progress stream
             connectProgressStream(scanId);
-            showToast('Scan Engaged', `Successfully started scan workflow on ${url}`, 'success');
+            showToast('Quét Bắt Đầu', `Đã khởi chạy quy trình quét cho ${url}`, 'success');
 
         } catch (error) {
-            showToast('Launch Error', error.message, 'error');
+            showToast('Lỗi Khởi Chạy', error.message, 'error');
             resetScannerConsole();
         }
     });
@@ -166,12 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(event.data);
             
             // 1. Process standard log lines
-            if (data.type === 'log') {
+                if (data.type === 'log') {
                 appendConsoleLine(data.message, data.status);
                 
                 // Update live status text
-                if (data.message.startsWith('[+]')) {
-                    liveStatusText.innerText = `Current Phase: ${data.message.substring(4)}`;
+                    if (data.message.startsWith('[+]')) {
+                    liveStatusText.innerText = `Giai đoạn hiện tại: ${data.message.substring(4)}`;
                 }
 
                 // 2. Stepper status state updates
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             currentStepId = data.step;
                             stepNode.className = 'step running';
-                            progressPercentage.innerText = `ACTIVE: ${data.step.toUpperCase()}`;
+                            progressPercentage.innerText = `ĐANG: ${data.step.toUpperCase()}`;
                         } else if (data.status === 'success') {
                             stepNode.className = 'step success';
                         } else if (data.status === 'failed') {
@@ -200,10 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 3. Scan compilation completed
-            if (data.type === 'done') {
+                if (data.type === 'done') {
                 currentEventSource.close();
                 currentEventSource = null;
-                showToast('Scan Completed', 'Security vulnerability report generated successfully.', 'success');
+                showToast('Quét Hoàn Thành', 'Báo cáo quét đã được tạo thành công.', 'success');
                 
                 // Mark all steps up to report as success
                 document.querySelectorAll('.step').forEach(stepEl => {
@@ -223,11 +223,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.type === 'error') {
                 currentEventSource.close();
                 currentEventSource = null;
-                showToast('Scan Aborted', `Engine reported error: ${data.error}`, 'error');
+                showToast('Quét Bị Hủy', `Lỗi động cơ quét: ${data.error}`, 'error');
                 
-                progressPercentage.innerText = 'PIPELINE FAILED';
+                progressPercentage.innerText = 'TIẾN TRÌNH LỖI';
                 progressPercentage.className = 'badge text-red';
-                liveStatusText.innerText = 'Process execution halted.';
+                liveStatusText.innerText = 'Quá trình thực thi đã dừng.';
                 
                 if (currentStepId) {
                     const stepNode = document.getElementById(`step-${currentStepId}`);
@@ -236,13 +236,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 startScanBtn.disabled = false;
                 // Add an explicit button to reset console
-                appendConsoleLine(`[CRITICAL] Scanning process crashed: ${data.error}`, 'failed');
+                appendConsoleLine(`[CRITICAL] Quá trình quét gặp lỗi: ${data.error}`, 'failed');
             }
         };
 
         currentEventSource.onerror = (err) => {
             console.error('SSE Error:', err);
-            appendConsoleLine('[SYSTEM] Log connection interrupted. Retrying...', 'failed');
+            appendConsoleLine('[HỆ THỐNG] Kết nối nhật ký bị gián đoạn. Đang thử lại...', 'failed');
         };
     }
 
@@ -273,8 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
         consoleOutput.scrollTop = consoleOutput.scrollHeight;
     }
 
-    clearConsoleBtn.addEventListener('click', () => {
-        consoleOutput.innerHTML = '<div class="console-line text-dim">Console logs cleared.</div>';
+        clearConsoleBtn.addEventListener('click', () => {
+        consoleOutput.innerHTML = '<div class="console-line text-dim">Đã xóa nhật ký.</div>';
     });
 
     function resetScannerConsole() {
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadReportDetails(reportId) {
         try {
             const res = await fetch(`/api/reports/${reportId}`);
-            if (!res.ok) throw new Error('Failed to retrieve report data');
+            if (!res.ok) throw new Error('Không thể lấy dữ liệu báo cáo');
             const data = await res.json();
 
             renderReportHTML(reportId, data);
@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
         } catch (error) {
-            showToast('Viewer Error', error.message, 'error');
+            showToast('Lỗi Trình Xem', error.message, 'error');
             resetScannerConsole();
         }
     }
@@ -358,18 +358,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="card-glow"></div>
                     <div class="report-summary-layout">
                         <div class="report-meta-info">
-                            <div class="meta-field">
-                                <span class="field-label">Target Url:</span>
-                                <span class="field-val text-cyan">${escapeHtml(targetUrl)}</span>
-                            </div>
-                            <div class="meta-field">
-                                <span class="field-label">Scan ID:</span>
-                                <span class="field-val" style="font-family: var(--font-mono); font-size: 13px;">${reportId}</span>
-                            </div>
-                            <div class="meta-field">
-                                <span class="field-label">Completed At:</span>
-                                <span class="field-val">${dateStr}</span>
-                            </div>
+                                            <div class="meta-field">
+                                                <span class="field-label">URL Mục Tiêu:</span>
+                                                <span class="field-val text-cyan">${escapeHtml(targetUrl)}</span>
+                                            </div>
+                                            <div class="meta-field">
+                                                <span class="field-label">Mã Quét:</span>
+                                                <span class="field-val" style="font-family: var(--font-mono); font-size: 13px;">${reportId}</span>
+                                            </div>
+                                            <div class="meta-field">
+                                                <span class="field-label">Hoàn Thành:</span>
+                                                <span class="field-val">${dateStr}</span>
+                                            </div>
                         </div>
                         <div class="report-score-panel">
                             <div class="score-badge">
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Tab buttons -->
                     <div class="report-tab-buttons">
                         <button class="tab-btn active" data-pane="overview">
-                            <span>Overview</span>
+                            <span>Tổng Quan</span>
                             <span class="tab-badge"><i class="fa-solid fa-chart-simple"></i></span>
                         </button>
                         <button class="tab-btn" data-pane="headers">
@@ -419,15 +419,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         <!-- TAB: OVERVIEW -->
                         <div class="tab-pane active" id="pane-overview">
-                            <h3>Assessment Overview</h3>
-                            <p class="pane-desc">Consolidated scan summary matrix and metrics.</p>
+                            <h3>Tổng Quan Đánh Giá</h3>
+                            <p class="pane-desc">Tổng hợp tóm tắt và chỉ số sau khi quét.</p>
                             
                             <div class="tech-item-list">
                                 <div class="tech-item">
                                     <div class="tech-icon"><i class="fa-solid fa-file-shield"></i></div>
                                     <div>
-                                        <h5>Security Headers Analysis</h5>
-                                        <p>${missingHeaders === 0 ? 'All checked security headers are properly implemented.' : `Missing ${missingHeaders} standard security headers, exposing target to potential MIME-sniffing or framing attacks.`}</p>
+                                        <h5>Phân tích Header Bảo Mật</h5>
+                                        <p>${missingHeaders === 0 ? 'Tất cả header bảo mật đã được thiết lập đúng.' : `Thiếu ${missingHeaders} header bảo mật chuẩn, làm tăng rủi ro MIME-sniffing hoặc framing.`}</p>
                                     </div>
                                 </div>
                                 <div class="tech-item">
@@ -456,36 +456,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <!-- TAB: HEADERS -->
                         <div class="tab-pane" id="pane-headers">
-                            <h3>HTTP Security Headers</h3>
-                            <p class="pane-desc">Analysis of standard HTTP response headers protecting against client-side vectors.</p>
+                            <h3>Header HTTP Bảo Mật</h3>
+                            <p class="pane-desc">Phân tích các header HTTP tiêu chuẩn bảo vệ phía client.</p>
                             ${renderHeadersTable(report.headers)}
                         </div>
 
                         <!-- TAB: SSL -->
                         <div class="tab-pane" id="pane-ssl">
-                            <h3>SSL/TLS Certificate Details</h3>
-                            <p class="pane-desc">Cryptographic envelope verification parameters.</p>
+                            <h3>Chi Tiết Chứng Chỉ SSL/TLS</h3>
+                            <p class="pane-desc">Thông tin xác thực và tham số mã hoá.</p>
                             ${renderSslDetails(report.ssl)}
                         </div>
 
                         <!-- TAB: NMAP -->
                         <div class="tab-pane" id="pane-nmap">
-                            <h3>Active Network Ports</h3>
-                            <p class="pane-desc">Nmap port scans showing active listeners, transport layers, and versions.</p>
+                            <h3>Cổng Mạng Hoạt Động</h3>
+                            <p class="pane-desc">Kết quả quét cổng (Nmap) hiển thị dịch vụ, giao thức và phiên bản.</p>
                             ${renderNmapTable(report.nmap)}
                         </div>
 
                         <!-- TAB: DIRECTORY -->
                         <div class="tab-pane" id="pane-directory">
-                            <h3>Brute-Forced Directories</h3>
-                            <p class="pane-desc">Files and subdirectory roots enumerated via target wordlist.</p>
+                            <h3>Danh Mục Đã Thử</h3>
+                            <p class="pane-desc">Các tệp và thư mục con được liệt kê từ danh sách từ khóa.</p>
                             ${renderDirectoryTable(report.directory)}
                         </div>
 
                         <!-- TAB: VULNERABILITIES -->
                         <div class="tab-pane" id="pane-vulns">
-                            <h3>Active Vulnerabilities Log</h3>
-                            <p class="pane-desc">Identified SQL Injection vectors and Cross-Site Scripting (XSS) parameter reflection findings.</p>
+                            <h3>Nhật Ký Lỗ Hổng</h3>
+                            <p class="pane-desc">Các vector SQLi và trường hợp phản chiếu XSS được phát hiện.</p>
                             ${renderVulnerabilitiesPane(report)}
                         </div>
 
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="history-card-actions">
                         <button class="cyber-btn primary" onclick="viewReport('${r.id}')" style="padding: 8px 16px; font-size:12px;">
-                            <span>Examine</span>
+                            <span>Xem</span>
                         </button>
                         <button class="cyber-btn danger" onclick="deleteHistoryReport('${r.id}')" style="padding: 8px 12px; font-size:12px;">
                             <i class="fa-solid fa-trash-can"></i>
@@ -924,9 +924,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     async function confirmDeleteReport(reportId, fromScannerView) {
-        if (!confirm(`Are you absolutely sure you want to delete scan report ${reportId}?`)) {
-            return;
-        }
+        if (!confirm(`Bạn có chắc chắn muốn xóa báo cáo quét ${reportId}?`)) {
+                return;
+            }
 
         try {
             const res = await fetch(`/api/reports/${reportId}`, { method: 'DELETE' });
